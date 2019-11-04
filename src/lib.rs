@@ -75,22 +75,40 @@ fn extract_inputs(punc: &syn::punctuated::Punctuated<syn::FnArg, syn::token::Com
         .collect()
 }
 
-#[proc_macro_attribute]
-pub fn wrapper(_attr: TokenStream, item: TokenStream) -> TokenStream {
+fn debug_item(item: &TokenStream) {
     let ast: syn::Item = syn::parse(item.clone()).unwrap();
     println!("{:#?}", ast);
+}
+
+#[proc_macro_attribute]
+pub fn func_wrapper(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    debug_item(&item);
     let Wrapper { func } = parse_macro_input!(item as Wrapper);
+    impl_func_wrapper(func)
+}
+
+fn impl_func_wrapper(func: syn::ItemFn) -> TokenStream {
+    let wrapped = build_func_wrap(&func);
+    let original = build_func_original(&func);
+    (quote! {
+        #original
+        #wrapped
+    })
+    .into()
+}
+
+fn build_func_wrap(func: &syn::ItemFn) -> quote::__rt::TokenStream {
     let sig = func.clone().sig;
     let name = sig.ident;
-    let wrap_name = quote::format_ident!("rust_{}", name);
     let inputs = sig.inputs;
     let output = sig.output;
     let extracted_inputs = extract_inputs(&inputs)
         .iter()
         .map(|input| input.ident.to_owned())
         .collect::<Vec<syn::Ident>>();
-    println!("{:#?}", extracted_inputs);
-    let wrap = quote! {
+
+    let wrap_name = quote::format_ident!("rust_{}", name);
+    let wrapped = quote! {
     #[no_mangle]
     pub extern "C" fn #wrap_name(#inputs) #output {
         #name(
@@ -98,12 +116,12 @@ pub fn wrapper(_attr: TokenStream, item: TokenStream) -> TokenStream {
         )
     }
     };
+    wrapped
+}
+
+fn build_func_original(func: &syn::ItemFn) -> quote::__rt::TokenStream {
     let original = quote! { #func };
-    (quote! {
-        #original
-        #wrap
-    })
-    .into()
+    original
 }
 
 impl Parse for Wrapper {
