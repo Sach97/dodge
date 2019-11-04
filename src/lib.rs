@@ -80,10 +80,11 @@ pub fn wrapper(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let ast: syn::Item = syn::parse(item.clone()).unwrap();
     println!("{:#?}", ast);
     let Wrapper { func } = parse_macro_input!(item as Wrapper);
-    let name = func.clone().sig.ident;
+    let sig = func.clone().sig;
+    let name = sig.ident;
     let wrap_name = quote::format_ident!("rust_{}", name);
-    let inputs = func.clone().sig.inputs;
-    let output = func.clone().sig.output;
+    let inputs = sig.inputs;
+    let output = sig.output;
     let extracted_inputs = extract_inputs(&inputs)
         .iter()
         .map(|input| input.ident.to_owned())
