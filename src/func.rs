@@ -7,7 +7,6 @@ pub struct Input {
 }
 
 impl Input {
-    #[allow(dead_code)]
     fn new(
         ident: &syn::Ident,
         mutability: &Option<syn::token::Mut>,
@@ -23,7 +22,6 @@ impl Input {
     }
 }
 
-#[allow(dead_code)]
 pub fn extract_inputs(
     punc: &syn::punctuated::Punctuated<syn::FnArg, syn::token::Comma>,
 ) -> Vec<Input> {
@@ -38,7 +36,6 @@ pub fn extract_inputs(
         .collect()
 }
 
-#[allow(dead_code)]
 fn extract_input(pat: &syn::Pat, ty: &Box<syn::Type>) -> Input {
     let (ident, mutability, by_ref) = match &*pat {
         syn::Pat::Ident(syn::PatIdent {
@@ -52,7 +49,6 @@ fn extract_input(pat: &syn::Pat, ty: &Box<syn::Type>) -> Input {
     Input::new(ident, mutability, by_ref, extract_type(ty))
 }
 
-#[allow(dead_code)]
 fn extract_type(ty: &std::boxed::Box<syn::Type>) -> &syn::Ident {
     match &**ty {
         syn::Type::Path(syn::TypePath { path, .. }) => extract_path(path),
@@ -60,7 +56,6 @@ fn extract_type(ty: &std::boxed::Box<syn::Type>) -> &syn::Ident {
     }
 }
 
-#[allow(dead_code)]
 fn extract_path(path: &syn::Path) -> &syn::Ident {
     &path.segments.first().unwrap().ident
 }
